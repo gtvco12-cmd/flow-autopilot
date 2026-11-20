@@ -67,6 +67,7 @@ class MainActivity : Activity() {
         summary = label("")
         add(summary)
         add(btn("Paste prompts") { showPasteDialog() })
+        add(btn("Set prompt template") { val et = EditText(this); et.setText(store.template); et.minLines = 6; et.gravity = android.view.Gravity.TOP; AlertDialog.Builder(this).setTitle("Template (use {TOPIC})").setView(et).setPositiveButton("Save") { _, _ -> store.template = et.text.toString(); Toast.makeText(this, "Template saved", Toast.LENGTH_SHORT).show() }.setNegativeButton("Cancel", null).show() })
         add(btn("Import TXT file") {
             startActivityForResult(
                 Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
