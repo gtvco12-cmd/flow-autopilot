@@ -40,4 +40,15 @@ class PromptStore(ctx: Context) {
     var lastReport: String
         get() = prefs.getString("report", "") ?: ""
         set(v) = prefs.edit().putString("report", v).apply()
+
+    /** Long prompt text with {TOPIC} where each list line goes. */
+    var template: String
+        get() = prefs.getString("template", "") ?: ""
+        set(v) = prefs.edit().putString("template", v).apply()
+
+    /** Builds the full prompt for one list line. */
+    fun build(topic: String): String {
+        val t = template
+        return if (t.isBlank()) topic else t.replace("{TOPIC}", topic)
+    }
 }
