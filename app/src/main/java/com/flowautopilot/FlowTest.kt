@@ -29,6 +29,8 @@ object FlowTest {
         }.start()
     }
 
+    private fun norm(s: String) = s.replace(Regex("\\s+"), " ").trim()
+
     private fun collect(
         node: AccessibilityNodeInfo?,
         pred: (AccessibilityNodeInfo) -> Boolean,
@@ -83,8 +85,10 @@ object FlowTest {
             log.appendLine("RESULT: STOPPED - no unsent prompt in the list.")
             return
         }
-        val prompt = prompts[index].trim()
-        log.appendLine("Prompt #${index + 1}: ${prompt.take(80)}")
+        val topic = prompts[index].trim()
+        val prompt = store.build(topic)
+        log.appendLine("Prompt #${index + 1} topic: ${topic.take(80)}")
+        log.appendLine("Full prompt length: ${prompt.length} characters")
         Thread.sleep(startDelayMs)
 
         val pkg = svc.rootInActiveWindow?.packageName?.toString()
@@ -114,20 +118,28 @@ object FlowTest {
             log.appendLine("RESULT: STOPPED - Flow refused the text insertion.")
             return
         }
-        val inserted = waitFor(3000) {
-            findBox(svc)?.let { boxText(it).trim() == prompt } == true
+        val inserted = waitFor(5000) {
+            findBox(svc)?.let { norm(boxText(it)) == norm(prompt) } == true
         }
         if (!inserted) {
             val now = findBox(svc)?.let { boxText(it) }
-            log.appendLine("RESULT: STOPPED - text not accepted. Box reads: ${now?.take(80)}. Check the box in Flow.")
+            log.appendLine("RESULT: STOPPED - text not accepted. Box length=${now?.length}, starts: ${now?.take(80)}")
             return
         }
         log.appendLine("Step: prompt verified in the box.")
 
         Thread.sleep(store.intervalSec * 1000L)
-        val still = findBox(svc)
-        if (still == null || boxText(still).trim() != prompt) {
-            log.appendLine("RESULT: STOPPED - box changed during the wait. Generate not tapped.")
+        val stillOk = waitFor(5000) {
+            findBox(svc)?.let { norm(boxText(it)) == norm(prompt) } == true
+        }
+        if (!stillOk) {
+            val b = findBox(svc)
+            val pkgNow = svc.rootInActiveWindow?.packageName
+            log.appendLine(
+                "RESULT: STOPPED - box check failed after wait. Box found=${b != null}, " +
+                    "length=${b?.let { boxText(it).length }}, starts=${b?.let { boxText(it) }?.take(80)}, " +
+                    "window=$pkgNow. Generate not tapped."
+            )
             return
         }
 
@@ -151,7 +163,7 @@ object FlowTest {
 
         val t0 = System.currentTimeMillis()
         val cleared = waitFor(20000, 250) {
-            findBox(svc)?.let { boxText(it).isEmpty() } == true
+            findBox(svc)?.let { boxText(it).trim().isEmpty() } == true
         }
         if (!cleared) {
             log.appendLine("RESULT: NOT CONFIRMED - box did not clear in 20 s, or the screen changed. Check Flow. Progress NOT saved.")
