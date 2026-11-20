@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Flow AutoPilot</string>
+    <string name="a11y_description">Lets Flow AutoPilot read the Google Flow screen and, in later versions, enter prompts and tap Generate.</string>
+</resources>
