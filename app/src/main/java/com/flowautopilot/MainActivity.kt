@@ -88,6 +88,7 @@ class MainActivity : Activity() {
         add(label("Diagnostic", true))
         add(label("Tap, then switch to Google Flow within 10 seconds and leave the prompt box and Generate button visible."))
         add(btn("Run diagnostic (10 s)") { runDiagnostic() })
+        add(btn("Test: submit 1 prompt") { val s = FlowAccessibilityService.instance; if (s == null || store.all().size <= store.submitted) { Toast.makeText(this, "Turn on accessibility and add a prompt first", Toast.LENGTH_LONG).show() } else { FlowTest.start(s, 10_000); Toast.makeText(this, "Switch to Google Flow now, on the prompt screen with an EMPTY box", Toast.LENGTH_LONG).show(); moveTaskToBack(true) } })
         add(btn("Copy report") {
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             cm.setPrimaryClip(ClipData.newPlainText("Flow diagnostic", store.lastReport))
